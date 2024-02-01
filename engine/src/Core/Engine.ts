@@ -88,7 +88,7 @@ async function getItemsFromInitializer<TItem, TInitializer extends GenericInitia
     let res = map.get(container);
 
     if (!res || force) {
-        res = await Promise.all([ ...initializers.values() ].map((t) => t(container)));
+        res = await Promise.all([...initializers.values()].map((t) => t(container)));
 
         map.set(container, res);
     }
@@ -207,7 +207,7 @@ export class Engine {
     get configs(): Record<string, ISourceOptions> {
         const res: Record<string, ISourceOptions> = {};
 
-        for (const [ name, config ] of this._configs) {
+        for (const [name, config] of this._configs) {
             res[name] = config;
         }
 
@@ -465,12 +465,29 @@ export class Engine {
     }
 
     /**
+     * init method, used by imports
+     */
+    async init(): Promise<void> {
+        if (this._initialized) {
+            return;
+        }
+
+        for (const loadPromise of this._loadPromises) {
+            await loadPromise(this);
+        }
+
+        this._loadPromises.clear();
+
+        this._initialized = true;
+    }
+
+    /**
      * Loads the provided options to create a {@link Container} object.
      * @param params - The particles container params {@link ILoadParams} object
      * @returns A Promise with the {@link Container} object created
      */
     async load(params: ILoadParams): Promise<Container | undefined> {
-        await this._init();
+        await this.init();
 
         const randomFactor = 10000,
             id = params.id ?? params.element?.id ?? `tsparticles${Math.floor(getRandom() * randomFactor)}`,
@@ -604,14 +621,12 @@ export class Engine {
         await Promise.all(this.dom().map((t) => t.refresh()));
     }
 
-    register(...loadPromises: LoadPluginFunction[]): void {
+    register(loadPromise: LoadPluginFunction): void {
         if (this._initialized) {
             throw new Error(`${errorPrefix} - Register plugins can only be done before calling tsParticles.load()`);
         }
 
-        for (const loadPromise of loadPromises) {
-            this._loadPromises.add(loadPromise);
-        }
+        this._loadPromises.add(loadPromise);
     }
 
     /**
@@ -637,22 +652,5 @@ export class Engine {
         for (const domItem of dom) {
             domItem.addClickHandler(callback);
         }
-    }
-
-    /**
-     * init method, used by imports
-     */
-    private async _init(): Promise<void> {
-        if (this._initialized) {
-            return;
-        }
-
-        for (const loadPromise of this._loadPromises) {
-            await loadPromise(this);
-        }
-
-        this._loadPromises.clear();
-
-        this._initialized = true;
     }
 }
