@@ -3,25 +3,26 @@ import type { IEmitterShapeGenerator } from "./IEmitterShapeGenerator.js";
 
 /**
  * @param engine - The [[EmittersEngine]] instance to load the plugin into
- * @param refresh -
  */
-export async function loadEmittersPlugin(engine: EmittersEngine, refresh = true): Promise<void> {
-    if (!engine.emitterShapeManager) {
-        const { ShapeManager } = await import("./ShapeManager.js");
+export function loadEmittersPlugin(engine: EmittersEngine): void {
+    engine.register(async (engine: EmittersEngine) => {
+        if (!engine.emitterShapeManager) {
+            const { ShapeManager } = await import("./ShapeManager.js");
 
-        engine.emitterShapeManager = new ShapeManager(engine);
-    }
+            engine.emitterShapeManager = new ShapeManager(engine);
+        }
 
-    if (!engine.addEmitterShapeGenerator) {
-        engine.addEmitterShapeGenerator = (name: string, generator: IEmitterShapeGenerator): void => {
-            engine.emitterShapeManager?.addShapeGenerator(name, generator);
-        };
-    }
+        if (!engine.addEmitterShapeGenerator) {
+            engine.addEmitterShapeGenerator = (name: string, generator: IEmitterShapeGenerator): void => {
+                engine.emitterShapeManager?.addShapeGenerator(name, generator);
+            };
+        }
 
-    const { EmittersPlugin } = await import("./EmittersPlugin.js"),
-        plugin = new EmittersPlugin(engine);
+        const { EmittersPlugin } = await import("./EmittersPlugin.js"),
+            plugin = new EmittersPlugin(engine);
 
-    await engine.addPlugin(plugin, refresh);
+        engine.addPlugin(plugin);
+    });
 }
 
 export * from "./EmitterContainer.js";

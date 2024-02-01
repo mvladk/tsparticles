@@ -4,10 +4,11 @@ export const svgPathName = "svgPathGenerator";
 
 /**
  * @param engine -
- * @param refresh -
  */
-export async function loadSVGPath(engine: Engine, refresh = true): Promise<void> {
-    const { SVGPathGenerator } = await import("./SVGPathGenerator.js");
+export function loadSVGPath(engine: Engine): void {
+    engine.register(async (engine) => {
+        const { SVGPathGenerator } = await import("./SVGPathGenerator.js");
 
-    await engine.addPathGenerator(svgPathName, new SVGPathGenerator(), refresh);
+        engine.addPathGenerator(svgPathName, new SVGPathGenerator());
+    });
 }

@@ -39,7 +39,7 @@ declare global {
              * @param options -
              * @returns the confetti function
              */
-            create: (canvas: HTMLCanvasElement, options: RecursivePartial<IConfettiOptions>) => Promise<ConfettiFunc>;
+            create: (canvas: HTMLCanvasElement, options: RecursivePartial<IConfettiOptions>) => ConfettiFunc;
 
             /**
              * the confetti version number
@@ -48,9 +48,6 @@ declare global {
         };
     }
 }
-
-let initialized = false;
-let initializing = false;
 
 const ids = new Map<string, Container | undefined>();
 
@@ -78,61 +75,40 @@ export interface ConfettiParams {
  * This function prepares all the plugins needed by the confetti bundle
  * @param engine -
  */
-async function initPlugins(engine: Engine): Promise<void> {
-    if (initialized) {
-        return;
-    }
+function initPlugins(engine: Engine): void {
+    engine.register(async () => {
+        const { loadEmittersPlugin } = await import("@tsparticles/plugin-emitters"),
+            { loadMotionPlugin } = await import("@tsparticles/plugin-motion"),
+            { loadCardsShape } = await import("@tsparticles/shape-cards"),
+            { loadHeartShape } = await import("@tsparticles/shape-heart"),
+            { loadImageShape } = await import("@tsparticles/shape-image"),
+            { loadPolygonShape } = await import("@tsparticles/shape-polygon"),
+            { loadSquareShape } = await import("@tsparticles/shape-square"),
+            { loadStarShape } = await import("@tsparticles/shape-star"),
+            { loadEmojiShape } = await import("@tsparticles/shape-emoji"),
+            { loadRotateUpdater } = await import("@tsparticles/updater-rotate"),
+            { loadLifeUpdater } = await import("@tsparticles/updater-life"),
+            { loadRollUpdater } = await import("@tsparticles/updater-roll"),
+            { loadTiltUpdater } = await import("@tsparticles/updater-tilt"),
+            { loadWobbleUpdater } = await import("@tsparticles/updater-wobble"),
+            { loadBasic } = await import("@tsparticles/basic");
 
-    if (initializing) {
-        return new Promise<void>((resolve) => {
-            const timeout = 100,
-                interval = setInterval(() => {
-                    if (!initialized) {
-                        return;
-                    }
-
-                    clearInterval(interval);
-                    resolve();
-                }, timeout);
-        });
-    }
-
-    initializing = true;
-
-    const { loadEmittersPlugin } = await import("@tsparticles/plugin-emitters"),
-        { loadMotionPlugin } = await import("@tsparticles/plugin-motion"),
-        { loadCardsShape } = await import("@tsparticles/shape-cards"),
-        { loadHeartShape } = await import("@tsparticles/shape-heart"),
-        { loadImageShape } = await import("@tsparticles/shape-image"),
-        { loadPolygonShape } = await import("@tsparticles/shape-polygon"),
-        { loadSquareShape } = await import("@tsparticles/shape-square"),
-        { loadStarShape } = await import("@tsparticles/shape-star"),
-        { loadEmojiShape } = await import("@tsparticles/shape-emoji"),
-        { loadRotateUpdater } = await import("@tsparticles/updater-rotate"),
-        { loadLifeUpdater } = await import("@tsparticles/updater-life"),
-        { loadRollUpdater } = await import("@tsparticles/updater-roll"),
-        { loadTiltUpdater } = await import("@tsparticles/updater-tilt"),
-        { loadWobbleUpdater } = await import("@tsparticles/updater-wobble"),
-        { loadBasic } = await import("@tsparticles/basic");
-
-    await loadEmittersPlugin(engine, false);
-    await loadMotionPlugin(engine, false);
-    await loadCardsShape(engine, false);
-    await loadHeartShape(engine, false);
-    await loadImageShape(engine, false);
-    await loadPolygonShape(engine, false);
-    await loadSquareShape(engine, false);
-    await loadStarShape(engine, false);
-    await loadEmojiShape(engine, false);
-    await loadRotateUpdater(engine, false);
-    await loadLifeUpdater(engine, false);
-    await loadRollUpdater(engine, false);
-    await loadTiltUpdater(engine, false);
-    await loadWobbleUpdater(engine, false);
-    await loadBasic(engine);
-
-    initializing = false;
-    initialized = true;
+        loadEmittersPlugin(engine);
+        loadMotionPlugin(engine);
+        loadCardsShape(engine);
+        loadHeartShape(engine);
+        loadImageShape(engine);
+        loadPolygonShape(engine);
+        loadSquareShape(engine);
+        loadStarShape(engine);
+        loadEmojiShape(engine);
+        loadRotateUpdater(engine);
+        loadLifeUpdater(engine);
+        loadRollUpdater(engine);
+        loadTiltUpdater(engine);
+        loadWobbleUpdater(engine);
+        loadBasic(engine);
+    });
 }
 
 /**
@@ -378,7 +354,7 @@ export async function confetti(
     idOrOptions: ConfettiFirstParam,
     confettiOptions?: RecursivePartial<IConfettiOptions>,
 ): Promise<Container | undefined> {
-    await initPlugins(tsParticles);
+    initPlugins(tsParticles);
 
     let options: RecursivePartial<IConfettiOptions>;
     let id: string;
@@ -403,15 +379,12 @@ export async function confetti(
  * @param options -
  * @returns the confetti function to use for the given canvas animations
  */
-confetti.create = async (
-    canvas: HTMLCanvasElement,
-    options: RecursivePartial<IConfettiOptions>,
-): Promise<ConfettiFunc> => {
+confetti.create = (canvas: HTMLCanvasElement, options: RecursivePartial<IConfettiOptions>): ConfettiFunc => {
     if (!canvas) {
         return confetti;
     }
 
-    await initPlugins(tsParticles);
+    initPlugins(tsParticles);
 
     const id = canvas.getAttribute("id") ?? "confetti";
 

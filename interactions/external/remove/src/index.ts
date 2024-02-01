@@ -2,18 +2,15 @@ import type { Engine } from "@tsparticles/engine";
 
 /**
  * @param engine -
- * @param refresh -
  */
-export async function loadExternalRemoveInteraction(engine: Engine, refresh = true): Promise<void> {
-    await engine.addInteractor(
-        "externalRemove",
-        async (container) => {
+export function loadExternalRemoveInteraction(engine: Engine): void {
+    engine.register((engine) => {
+        engine.addInteractor("externalRemove", async (container) => {
             const { Remover } = await import("./Remover.js");
 
             return new Remover(container);
-        },
-        refresh,
-    );
+        });
+    });
 }
 
 export * from "./Options/Classes/Remove.js";

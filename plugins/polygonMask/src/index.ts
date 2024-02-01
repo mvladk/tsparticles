@@ -1,14 +1,16 @@
-import "./pathseg.js";
 import type { Engine } from "@tsparticles/engine";
 
 /**
  * @param engine - The engine to add the plugin to
- * @param refresh -
  */
-export async function loadPolygonMaskPlugin(engine: Engine, refresh = true): Promise<void> {
-    const { PolygonMaskPlugin } = await import("./PolygonMaskPlugin.js");
+export function loadPolygonMaskPlugin(engine: Engine): void {
+    engine.register(async () => {
+        await import("./pathseg.js");
 
-    await engine.addPlugin(new PolygonMaskPlugin(engine), refresh);
+        const { PolygonMaskPlugin } = await import("./PolygonMaskPlugin.js");
+
+        engine.addPlugin(new PolygonMaskPlugin(engine));
+    });
 }
 
 export * from "./Enums/PolygonMaskInlineArrangement.js";

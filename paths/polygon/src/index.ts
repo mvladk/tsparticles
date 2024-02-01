@@ -4,10 +4,11 @@ export const polygonPathName = "polygonPathGenerator";
 
 /**
  * @param engine -
- * @param refresh -
  */
-export async function loadPolygonPath(engine: Engine, refresh = true): Promise<void> {
-    const { PolygonPathGenerator } = await import("./PolygonPathGenerator.js");
+export function loadPolygonPath(engine: Engine): void {
+    engine.register(async (engine) => {
+        const { PolygonPathGenerator } = await import("./PolygonPathGenerator.js");
 
-    await engine.addPathGenerator(polygonPathName, new PolygonPathGenerator(), refresh);
+        engine.addPathGenerator(polygonPathName, new PolygonPathGenerator());
+    });
 }

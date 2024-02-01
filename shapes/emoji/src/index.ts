@@ -3,10 +3,11 @@ import { validTypes } from "./Constants.js";
 
 /**
  * @param engine -
- * @param refresh -
  */
-export async function loadEmojiShape(engine: Engine, refresh = true): Promise<void> {
-    const { EmojiDrawer } = await import("./EmojiDrawer.js");
+export function loadEmojiShape(engine: Engine): void {
+    engine.register(async (engine) => {
+        const { EmojiDrawer } = await import("./EmojiDrawer.js");
 
-    await engine.addShape(validTypes, new EmojiDrawer(), refresh);
+        engine.addShape(validTypes, new EmojiDrawer());
+    });
 }

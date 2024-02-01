@@ -1,14 +1,16 @@
 import type { Engine } from "@tsparticles/engine";
-import { loadLinksInteraction } from "./interaction.js";
-import { loadLinksPlugin } from "./plugin.js";
 
 /**
  * @param engine -
- * @param refresh -
  */
-export async function loadParticlesLinksInteraction(engine: Engine, refresh = true): Promise<void> {
-    await loadLinksInteraction(engine, refresh);
-    await loadLinksPlugin(engine, refresh);
+export function loadParticlesLinksInteraction(engine: Engine): void {
+    engine.register(async (engine) => {
+        const { loadLinksInteraction } = await import("./interaction.js"),
+            { loadLinksPlugin } = await import("./plugin.js");
+
+        loadLinksInteraction(engine);
+        loadLinksPlugin(engine);
+    });
 }
 
 export * from "./Options/Classes/Links.js";

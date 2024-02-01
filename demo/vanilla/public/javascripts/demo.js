@@ -1,6 +1,6 @@
 (async () => {
-    const initParticles = async (engine) => {
-        await loadAll(engine);
+    const initParticles = (engine) => {
+        loadAll(engine);
     };
 
     //let schema = {};
@@ -151,7 +151,7 @@
     };
 
     window.addEventListener("load", async () => {
-        await initParticles(tsParticles);
+        initParticles(tsParticles);
 
         for (const presetId in tsParticles.configs) {
             const preset = tsParticles.configs[presetId];

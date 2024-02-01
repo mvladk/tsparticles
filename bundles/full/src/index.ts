@@ -7,37 +7,38 @@ import type { Engine } from "@tsparticles/engine";
  * If this function is not called, the tsparticles package/dependency can be safely removed.
  * This function is called automatically using CDN bundle files.
  * @param engine - the engine to use for loading all plugins
- * @param refresh -
  */
-export async function loadFull(engine: Engine, refresh = true): Promise<void> {
-    const { loadDestroyUpdater } = await import("@tsparticles/updater-destroy"),
-        { loadRollUpdater } = await import("@tsparticles/updater-roll"),
-        { loadTiltUpdater } = await import("@tsparticles/updater-tilt"),
-        { loadTwinkleUpdater } = await import("@tsparticles/updater-twinkle"),
-        { loadWobbleUpdater } = await import("@tsparticles/updater-wobble"),
-        { loadTextShape } = await import("@tsparticles/shape-text"),
-        { loadExternalTrailInteraction } = await import("@tsparticles/interaction-external-trail"),
-        { loadAbsorbersPlugin } = await import("@tsparticles/plugin-absorbers"),
-        { loadEmittersPlugin } = await import("@tsparticles/plugin-emitters"),
-        { loadEmittersShapeCircle } = await import("@tsparticles/plugin-emitters-shape-circle"),
-        { loadEmittersShapeSquare } = await import("@tsparticles/plugin-emitters-shape-square"),
-        { loadSlim } = await import("@tsparticles/slim");
+export function loadFull(engine: Engine): void {
+    engine.register(async (engine) => {
+        const { loadDestroyUpdater } = await import("@tsparticles/updater-destroy"),
+            { loadRollUpdater } = await import("@tsparticles/updater-roll"),
+            { loadTiltUpdater } = await import("@tsparticles/updater-tilt"),
+            { loadTwinkleUpdater } = await import("@tsparticles/updater-twinkle"),
+            { loadWobbleUpdater } = await import("@tsparticles/updater-wobble"),
+            { loadTextShape } = await import("@tsparticles/shape-text"),
+            { loadExternalTrailInteraction } = await import("@tsparticles/interaction-external-trail"),
+            { loadAbsorbersPlugin } = await import("@tsparticles/plugin-absorbers"),
+            { loadEmittersPlugin } = await import("@tsparticles/plugin-emitters"),
+            { loadEmittersShapeCircle } = await import("@tsparticles/plugin-emitters-shape-circle"),
+            { loadEmittersShapeSquare } = await import("@tsparticles/plugin-emitters-shape-square"),
+            { loadSlim } = await import("@tsparticles/slim");
 
-    await loadDestroyUpdater(engine, false);
-    await loadRollUpdater(engine, false);
-    await loadTiltUpdater(engine, false);
-    await loadTwinkleUpdater(engine, false);
-    await loadWobbleUpdater(engine, false);
+        loadDestroyUpdater(engine);
+        loadRollUpdater(engine);
+        loadTiltUpdater(engine);
+        loadTwinkleUpdater(engine);
+        loadWobbleUpdater(engine);
 
-    await loadTextShape(engine, false);
+        loadTextShape(engine);
 
-    await loadExternalTrailInteraction(engine, false);
+        loadExternalTrailInteraction(engine);
 
-    await loadAbsorbersPlugin(engine, false);
-    await loadEmittersPlugin(engine, false);
+        loadAbsorbersPlugin(engine);
+        loadEmittersPlugin(engine);
 
-    await loadEmittersShapeCircle(engine, false);
-    await loadEmittersShapeSquare(engine, false);
+        loadEmittersShapeCircle(engine);
+        loadEmittersShapeSquare(engine);
 
-    await loadSlim(engine, refresh);
+        loadSlim(engine);
+    });
 }

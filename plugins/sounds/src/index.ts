@@ -2,10 +2,11 @@ import { type Engine } from "@tsparticles/engine";
 
 /**
  * @param engine -
- * @param refresh -
  */
-export async function loadSoundsPlugin(engine: Engine, refresh = true): Promise<void> {
-    const { SoundsPlugin } = await import("./SoundsPlugin.js");
+export function loadSoundsPlugin(engine: Engine): void {
+    engine.register(async (engine) => {
+        const { SoundsPlugin } = await import("./SoundsPlugin.js");
 
-    await engine.addPlugin(new SoundsPlugin(engine), refresh);
+        engine.addPlugin(new SoundsPlugin(engine));
+    });
 }

@@ -4,13 +4,12 @@ import type { Engine } from "@tsparticles/engine";
 /**
  *
  * @param engine -
- * @param refresh -
  */
-export async function loadEmittersShapeCanvas(engine: Engine, refresh = true): Promise<void> {
-    const emittersEngine = engine as EmittersEngine,
-        { EmittersCanvasShapeGenerator } = await import("./EmittersCanvasShapeGenerator.js");
+export function loadEmittersShapeCanvas(engine: Engine): void {
+    engine.register(async (engine) => {
+        const emittersEngine = engine as EmittersEngine,
+            { EmittersCanvasShapeGenerator } = await import("./EmittersCanvasShapeGenerator.js");
 
-    emittersEngine.addEmitterShapeGenerator?.("canvas", new EmittersCanvasShapeGenerator());
-
-    await emittersEngine.refresh(refresh);
+        emittersEngine.addEmitterShapeGenerator?.("canvas", new EmittersCanvasShapeGenerator());
+    });
 }

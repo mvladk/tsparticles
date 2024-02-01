@@ -61,16 +61,16 @@ function addLoadImageToEngine(engine: ImageEngine): void {
 /**
  * Loads the image shape in the given engine
  * @param engine - the engine where the image shape is going to be added
- * @param refresh -
  */
-export async function loadImageShape(engine: ImageEngine, refresh = true): Promise<void> {
-    addLoadImageToEngine(engine);
+export function loadImageShape(engine: ImageEngine): void {
+    engine.register(async (engine: ImageEngine) => {
+        addLoadImageToEngine(engine);
 
-    const { ImagePreloaderPlugin } = await import("./ImagePreloader.js"),
-        { ImageDrawer } = await import("./ImageDrawer.js");
+        const { ImagePreloaderPlugin } = await import("./ImagePreloader.js"),
+            { ImageDrawer } = await import("./ImageDrawer.js"),
+            preloader = new ImagePreloaderPlugin(engine);
 
-    const preloader = new ImagePreloaderPlugin(engine);
-
-    await engine.addPlugin(preloader, refresh);
-    await engine.addShape(["image", "images"], new ImageDrawer(engine), refresh);
+        engine.addPlugin(preloader);
+        engine.addShape(["image", "images"], new ImageDrawer(engine));
+    });
 }

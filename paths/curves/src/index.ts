@@ -4,10 +4,11 @@ export const curvesPathName = "curvesPathGenerator";
 
 /**
  * @param engine -
- * @param refresh -
  */
-export async function loadCurvesPath(engine: Engine, refresh = true): Promise<void> {
-    const { CurvesPathGenerator } = await import("./CurvesPathGenerator.js");
+export function loadCurvesPath(engine: Engine): void {
+    engine.register(async (engine) => {
+        const { CurvesPathGenerator } = await import("./CurvesPathGenerator.js");
 
-    await engine.addPathGenerator(curvesPathName, new CurvesPathGenerator(), refresh);
+        engine.addPathGenerator(curvesPathName, new CurvesPathGenerator());
+    });
 }

@@ -2,10 +2,11 @@ import type { Engine } from "@tsparticles/engine";
 
 /**
  * @param engine -
- * @param refresh -
  */
-export async function loadHeartShape(engine: Engine, refresh = true): Promise<void> {
-    const { HeartDrawer } = await import("./HeartDrawer.js");
+export function loadHeartShape(engine: Engine): void {
+    engine.register(async (engine) => {
+        const { HeartDrawer } = await import("./HeartDrawer.js");
 
-    await engine.addShape("heart", new HeartDrawer(), refresh);
+        engine.addShape("heart", new HeartDrawer());
+    });
 }

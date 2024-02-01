@@ -49,6 +49,16 @@ type GenericInitializer<T> = (container: Container) => Promise<T>;
  */
 type InteractorInitializer = GenericInitializer<IInteractor>;
 
+type AsyncLoadPluginFunction = (engine: Engine) => Promise<void>;
+type SyncLoadPluginFunction = (engine: Engine) => void;
+type AsyncLoadPluginNoEngine = () => Promise<void>;
+type SyncLoadPluginNoEngine = () => void;
+type LoadPluginFunction =
+    | AsyncLoadPluginFunction
+    | SyncLoadPluginFunction
+    | AsyncLoadPluginNoEngine
+    | SyncLoadPluginNoEngine;
+
 type MoverInitializer = GenericInitializer<IParticleMover>;
 
 /**
@@ -78,7 +88,7 @@ async function getItemsFromInitializer<TItem, TInitializer extends GenericInitia
     let res = map.get(container);
 
     if (!res || force) {
-        res = await Promise.all([...initializers.values()].map((t) => t(container)));
+        res = await Promise.all([ ...initializers.values() ].map((t) => t(container)));
 
         map.set(container, res);
     }
@@ -167,6 +177,8 @@ export class Engine {
 
     private readonly _initializers: Initializers;
 
+    private readonly _loadPromises: Set<LoadPluginFunction>;
+
     /**
      * Engine constructor, initializes plugins, loader and the containers array
      */
@@ -175,6 +187,7 @@ export class Engine {
         this._domArray = [];
         this._eventDispatcher = new EventDispatcher();
         this._initialized = false;
+        this._loadPromises = new Set<LoadPluginFunction>();
 
         this.plugins = [];
         this._initializers = {
@@ -194,7 +207,7 @@ export class Engine {
     get configs(): Record<string, ISourceOptions> {
         const res: Record<string, ISourceOptions> = {};
 
-        for (const [name, config] of this._configs) {
+        for (const [ name, config ] of this._configs) {
             res[name] = config;
         }
 
@@ -216,16 +229,13 @@ export class Engine {
      * addEffect adds effect to tsParticles, it will be available to all future instances created
      * @param effect - the effect name
      * @param drawer - the effect drawer function or class instance that draws the effect in the canvas
-     * @param refresh - should refresh the dom after adding the effect
      */
-    async addEffect(effect: SingleOrMultiple<string>, drawer: IEffectDrawer, refresh = true): Promise<void> {
+    addEffect(effect: SingleOrMultiple<string>, drawer: IEffectDrawer): void {
         executeOnSingleOrMultiple(effect, (type) => {
             if (!this.getEffectDrawer(type)) {
                 this.effectDrawers.set(type, drawer);
             }
         });
-
-        await this.refresh(refresh);
     }
 
     /**
@@ -241,62 +251,47 @@ export class Engine {
      * Adds an interaction manager to the current collection
      * @param name - the interaction manager name
      * @param interactorInitializer - the interaction manager initializer
-     * @param refresh - if true the engine will refresh all the containers
      */
-    async addInteractor(name: string, interactorInitializer: InteractorInitializer, refresh = true): Promise<void> {
+    addInteractor(name: string, interactorInitializer: InteractorInitializer): void {
         this._initializers.interactors.set(name, interactorInitializer);
-
-        await this.refresh(refresh);
     }
 
     /**
      * @param name - the mover name
      * @param moverInitializer - the mover initializer
-     * @param refresh - if true the engine will refresh all the containers
      */
-    async addMover(name: string, moverInitializer: MoverInitializer, refresh = true): Promise<void> {
+    addMover(name: string, moverInitializer: MoverInitializer): void {
         this._initializers.movers.set(name, moverInitializer);
-
-        await this.refresh(refresh);
     }
 
     /**
      * Adds a particle updater to the collection
      * @param name - the particle updater name used as a key
      * @param updaterInitializer - the particle updater initializer
-     * @param refresh - if true the engine will refresh all the containers
      */
-    async addParticleUpdater(name: string, updaterInitializer: UpdaterInitializer, refresh = true): Promise<void> {
+    addParticleUpdater(name: string, updaterInitializer: UpdaterInitializer): void {
         this._initializers.updaters.set(name, updaterInitializer);
-
-        await this.refresh(refresh);
     }
 
     /**
      * addPathGenerator adds a named path generator to tsParticles, this can be called by options
      * @param name - the path generator name
      * @param generator - the path generator object
-     * @param refresh - should refresh the dom after adding the path generator
      */
-    async addPathGenerator(name: string, generator: IMovePathGenerator, refresh = true): Promise<void> {
+    addPathGenerator(name: string, generator: IMovePathGenerator): void {
         if (!this.getPathGenerator(name)) {
             this.pathGenerators.set(name, generator);
         }
-
-        await this.refresh(refresh);
     }
 
     /**
      * addPlugin adds plugin to tsParticles, if an instance needs it, it will be loaded
      * @param plugin - the plugin implementation of {@link IPlugin}
-     * @param refresh - should refresh the dom after adding the plugin
      */
-    async addPlugin(plugin: IPlugin, refresh = true): Promise<void> {
+    addPlugin(plugin: IPlugin): void {
         if (!this.getPlugin(plugin.id)) {
             this.plugins.push(plugin);
         }
-
-        await this.refresh(refresh);
     }
 
     /**
@@ -304,35 +299,24 @@ export class Engine {
      * @param preset - the preset name
      * @param options - the options to add to the preset
      * @param override - if true, the preset will override any existing with the same name
-     * @param refresh - should refresh the dom after adding the preset
      */
-    async addPreset(
-        preset: string,
-        options: RecursivePartial<IOptions>,
-        override = false,
-        refresh = true,
-    ): Promise<void> {
+    addPreset(preset: string, options: RecursivePartial<IOptions>, override = false): void {
         if (override || !this.getPreset(preset)) {
             this.presets.set(preset, options);
         }
-
-        await this.refresh(refresh);
     }
 
     /**
      * addShape adds shape to tsParticles, it will be available to all future instances created
      * @param shape - the shape name
      * @param drawer - the shape drawer function or class instance that draws the shape in the canvas
-     * @param refresh - should refresh the dom after adding the shape
      */
-    async addShape(shape: SingleOrMultiple<string>, drawer: IShapeDrawer, refresh = true): Promise<void> {
+    addShape(shape: SingleOrMultiple<string>, drawer: IShapeDrawer): void {
         executeOnSingleOrMultiple(shape, (type) => {
             if (!this.getShapeDrawer(type)) {
                 this.shapeDrawers.set(type, drawer);
             }
         });
-
-        await this.refresh(refresh);
     }
 
     clearPlugins(container: Container): void {
@@ -481,22 +465,13 @@ export class Engine {
     }
 
     /**
-     * init method, used by imports
-     */
-    init(): void {
-        if (this._initialized) {
-            return;
-        }
-
-        this._initialized = true;
-    }
-
-    /**
      * Loads the provided options to create a {@link Container} object.
      * @param params - The particles container params {@link ILoadParams} object
      * @returns A Promise with the {@link Container} object created
      */
     async load(params: ILoadParams): Promise<Container | undefined> {
+        await this._init();
+
         const randomFactor = 10000,
             id = params.id ?? params.element?.id ?? `tsparticles${Math.floor(getRandom() * randomFactor)}`,
             { index, url } = params,
@@ -629,6 +604,16 @@ export class Engine {
         await Promise.all(this.dom().map((t) => t.refresh()));
     }
 
+    register(...loadPromises: LoadPluginFunction[]): void {
+        if (this._initialized) {
+            throw new Error(`${errorPrefix} - Register plugins can only be done before calling tsParticles.load()`);
+        }
+
+        for (const loadPromise of loadPromises) {
+            this._loadPromises.add(loadPromise);
+        }
+    }
+
     /**
      * Removes a listener from the specified event
      * @param type - The event to stop listening to
@@ -652,5 +637,22 @@ export class Engine {
         for (const domItem of dom) {
             domItem.addClickHandler(callback);
         }
+    }
+
+    /**
+     * init method, used by imports
+     */
+    private async _init(): Promise<void> {
+        if (this._initialized) {
+            return;
+        }
+
+        for (const loadPromise of this._loadPromises) {
+            await loadPromise(this);
+        }
+
+        this._loadPromises.clear();
+
+        this._initialized = true;
     }
 }

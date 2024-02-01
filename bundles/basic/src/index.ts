@@ -7,24 +7,23 @@ import type { Engine } from "@tsparticles/engine";
  * If this function is not called, the \@tsparticles/basic package/dependency can be safely removed.
  * This function is called automatically using CDN bundle files.
  * @param engine - the engine to use for loading all plugins
- * @param refresh -
  */
-export async function loadBasic(engine: Engine, refresh = true): Promise<void> {
-    const { loadBaseMover } = await import("@tsparticles/move-base"),
-        { loadCircleShape } = await import("@tsparticles/shape-circle"),
-        { loadColorUpdater } = await import("@tsparticles/updater-color"),
-        { loadOpacityUpdater } = await import("@tsparticles/updater-opacity"),
-        { loadOutModesUpdater } = await import("@tsparticles/updater-out-modes"),
-        { loadSizeUpdater } = await import("@tsparticles/updater-size");
+export function loadBasic(engine: Engine): void {
+    engine.register(async (engine) => {
+        const { loadBaseMover } = await import("@tsparticles/move-base"),
+            { loadCircleShape } = await import("@tsparticles/shape-circle"),
+            { loadColorUpdater } = await import("@tsparticles/updater-color"),
+            { loadOpacityUpdater } = await import("@tsparticles/updater-opacity"),
+            { loadOutModesUpdater } = await import("@tsparticles/updater-out-modes"),
+            { loadSizeUpdater } = await import("@tsparticles/updater-size");
 
-    await loadBaseMover(engine, false);
+        loadBaseMover(engine);
 
-    await loadCircleShape(engine, false);
+        loadCircleShape(engine);
 
-    await loadColorUpdater(engine, false);
-    await loadOpacityUpdater(engine, false);
-    await loadOutModesUpdater(engine, false);
-    await loadSizeUpdater(engine, false);
-
-    await engine.refresh(refresh);
+        loadColorUpdater(engine);
+        loadOpacityUpdater(engine);
+        loadOutModesUpdater(engine);
+        loadSizeUpdater(engine);
+    });
 }
