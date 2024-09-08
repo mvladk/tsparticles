@@ -154,10 +154,14 @@ const generatedTrue = "true",
 
         return canvasEl;
     },
-    getDomContainer = (id: string, source?: HTMLElement): HTMLElement => {
+    getDomContainer = (id: string, zIndex?: number, source?: HTMLElement): HTMLElement => {
         let domContainer = source ?? document.getElementById(id);
 
         if (domContainer) {
+            if (zIndex !== undefined) {
+                domContainer.style.zIndex = zIndex.toString();
+            }
+
             return domContainer;
         }
 
@@ -166,9 +170,14 @@ const generatedTrue = "true",
         domContainer.id = id;
         domContainer.dataset[generatedAttribute] = generatedTrue;
 
+        if (zIndex !== undefined) {
+            domContainer.style.zIndex = zIndex.toString();
+        }
+
         document.body.append(domContainer);
 
         return domContainer;
+    };
     };
 
 /**
